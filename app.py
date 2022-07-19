@@ -3,6 +3,7 @@ import re
 import json
 import hashlib
 import os
+from pathlib import Path
 
 class Account:
     def __init__(self, name: str, email: str, password: str, id: int, age: int):
@@ -17,7 +18,7 @@ class Login:
         """
         @action: Entweder `login` oder `registrierung`
         """
-        print(action)
+        self.check_for_storage(".txt")
         if action.lower() == "registrieren" or action == "r":
             try:
                 self.register()
@@ -25,12 +26,17 @@ class Login:
                 print("Die E-Mail ist schon vergeben.")
             except BaseException: # Oh EMail ist nicht valide
                 print("Eingegebene E-Mail ist keine gültige E-Mail.")
-        elif action.lower() == "einloggen" or action == "l":
+        elif action.lower() == "login" or action == "l":
                 print(self.login())
         else:
             return "ungültig"
 
-    def get_hashed_password(password: str, salt: str):
+    def check_for_storage(self, filetype: str):
+        if not Path("account" + filetype).is_file():
+            with open("account" + filetype, "w"):
+                pass
+
+    def get_hashed_password(self, password: str, salt: str):
         return hashlib.sha1((password + salt).encode('utf-8')).hexdigest()
 
     def login(self):
@@ -62,15 +68,14 @@ class Login:
         self.save_user(email, info_name, info_password, info_age)
 
     def save_user(self, emailAddress: str, info_name: str, info_password: str, info_age: int):
-        with open("account.txt", "a", encoding="utf-8") as file:
-            salt = b64encode(os.urandom(16))
-            file.write(", ".join([info_name, emailAddress, self.get_hashed_password(info_password, salt), info_age, salt, '\n']))
-        
         """
         Nutzer wird mit EMail-Addresse registriert
         @emailaddress: E-Mail Adresse des zu registrierenden Nutzers
         """
-    
+        with open("account.txt", "a", encoding="utf-8") as file:
+            salt = b64encode(os.urandom(16))
+            file.write(", ".join([info_name, emailAddress, self.get_hashed_password(info_password, salt), info_age, salt, '\n']))
+        
     
     def is_user_registered(self, emailAddress: str):
         with open("account.txt", "r", encoding="utf-8") as userfile:
@@ -101,6 +106,7 @@ class Login:
 
 class LoginJSON(Login):
     def __init__(self, action: str) -> None:
+        self.check_for_storage(".json")
         super().__init__(action)
 
     def check_login(self, email: str, password: str):
@@ -143,5 +149,5 @@ class LoginJSON(Login):
         return False
 
 
-# tim = Login(input("Registrieren(r) oder einloggen?(l) "))
+# login = Login(input("Registrieren(r) oder einloggen?(l) "))
 jsonLogin = LoginJSON(input("Registrieren(r) oder einloggen?(l) "))
