@@ -141,7 +141,12 @@ class LoginJSON(Login):
     def is_user_registered(self, emailAddress: str):
         users = None
         with open('account.json', 'r', encoding="utf-8") as file:
-            users = json.loads(file.read())
+            content = file.read()
+            if len(content) > 0:
+                users = json.loads()
+            
+        if users is None:
+            return False
         
         for user in users['users']:
             if user['email'] == emailAddress:
